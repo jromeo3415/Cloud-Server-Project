@@ -21,13 +21,13 @@ def start_server():
         print("Error: Could not bind host to port or address.")
         exit()
 
-    while True:
-        try:
-            client, addr = s.accept()
-            print('Got connection from ', addr)
-        except:
-            print("Error: Could not accept connection from client")
+    try:
+        client, addr = s.accept()
+        print('Got connection from ', addr)
+    except:
+        print("Error: Could not accept connection from client")
 
+    while True:
         #receiving command from client and storing
         whole_command = client.recv(BUFFER).decode().strip()
 
@@ -39,15 +39,16 @@ def start_server():
 
         #client requests to upload file
         elif whole_command.startswith("upload"):
-            command, file_name = whole_command.split(" ",2)
+            command, file_name = whole_command.split(" ",1)
+            file_path = os.path.join("server_files", file_name)
 
-            if(os.path.exists(file_name)): #checking if file is already on server
-                client.sendall("File already exists. Enter 'yes' to overwrite, and 'no' to abort.".encode())
+            if(os.path.exists(file_path)): #checking if file is already on server
+                client.sendall("File already exists. Enter 'yes' to overwrite, and 'no' to abort: ".encode())
                 overwrite = client.recv(BUFFER).decode().strip() #clients request to overwrite or not
 
                 if(overwrite == "yes"): #client wishes to overwrite duplicate
-                    client.sendall("READY".encode())
-                    file_path = os.path.join("server_files", file_name)
+                    client.send("READY".encode())
+                    #file_path = os.path.join("server_files", file_name)
                     with open(file_path, "wb") as folder: #opening file and replacing contents
                         while True:
                             data = client.recv(BUFFER)
@@ -56,12 +57,10 @@ def start_server():
                             folder.write(data)
 
                 elif(overwrite == "no"): #client does not want to overwrite
-                    client.sendall("File not overwritten. Upload aborted")
-                    break
+                    client.sendall("File not overwritten. Upload aborted".encode())
 
                 else: #send error for non-fitting command
-                    client.sendall("Error: Command not recognized")
-                    break
+                    client.sendall("Error: Command not recognized".encode())
 
             else: #file doesnt already exist on server, write normally
                 file_path = os.path.join("server_files", file_name)
@@ -72,6 +71,9 @@ def start_server():
                         if not data: #stop recieving when data isnt recieved
                             break
                         folder.write(data)
+
+        else:
+            print("Error: Command not recognized")
 
 #allows file to be run from command line
 if __name__ == "__main__":

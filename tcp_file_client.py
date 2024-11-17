@@ -2,7 +2,7 @@
 import socket
 
 s = socket.socket() #socket for client tcp file transfer
-host = '35.225.209.17' #change to the ip address of the host machine
+host = '127.0.0.1' #change to the ip address of the host machine
 port = 8080 #change to desired port
 BUFFER = 4096 #packet size
 
@@ -21,18 +21,19 @@ def start_client():
         #client requests list of files
         if whole_command == "list":
             s.sendall(whole_command.encode())
-            print(s.recv(BUFFER).decode())
+            file_list = s.recv(BUFFER).decode()
+            print(file_list)
 
         #client requests to upload file
         elif whole_command.startswith("upload"):
-            command, file_path = whole_command.split(" ", 2)
-            s.sendall(whole_command.encode())
-            ack = s.recv(BUFFER)
-
+            command, file_path = whole_command.split(" ", 1)
+            s.send(whole_command.encode())
+            ack = s.recv(BUFFER).decode()
 
             # server is ready to write, send data
             if(ack == "READY"):
-                with open(file_path, "wb") as folder:
+                print("WERE PRINTING")
+                with open(file_path, "rb") as folder:
                     while chunk := (folder.read(BUFFER)):#loop to send packets until full file is sent
                         s.send(chunk)
 
@@ -40,19 +41,22 @@ def start_client():
             elif(ack.startswith("File")):
                 overwrite_choice = input(ack)
                 s.send(overwrite_choice.encode())
-                overwrite_ack = s.recv(BUFFER)
+                overwrite_ack = s.recv(BUFFER).decode()
 
                 #client chooses to overwrite
                 if(overwrite_ack == "READY"):
-                    with open(file_path, "wb") as folder:
+                    with open(file_path, "rb") as folder:
                         while chunk := (folder.read(BUFFER)):
                             s.send(chunk)
 
+                elif(overwrite_ack == "File not overwritten. Upload aborted"):
+                    print(overwrite_ack)
+
                 else:
-                    print("Error: Unexpected server ACK")
+                    print("Error: Unexpected server ACK1")
 
             else:
-                print("Error: Unexpected server ACK")
+                print("Error: Unexpected server ACK2")
 
 
         elif whole_command.startswith("download"):
