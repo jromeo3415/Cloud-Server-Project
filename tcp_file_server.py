@@ -71,7 +71,26 @@ def start_server():
                         if not data: #stop recieving when data isnt recieved
                             break
                         folder.write(data)
+                # client requests to delete file
+        elif whole_command.startswith("delete"):
+            command, file_name = whole_command.split(" ", 1)
+            file_path = os.path.join("server_files", file_name)
 
+            if not (os.path.exists(file_path)):
+                client.sendall("Error: File does not exist".encode())
+                return
+            else:
+                try:
+                    with open(file_path, "r+"):
+                        pass
+                except IOError:
+                    client.sendall("Error: File is currently being processed".encode())
+                    return
+            try:
+                os.remove(file_path)
+                client.sendall("Successfully removed".encode())
+            except Exception as e:
+                client.sendall("Error: " + str(e).encode())
         else:
             print("Error: Command not recognized")
 

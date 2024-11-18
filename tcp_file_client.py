@@ -62,6 +62,17 @@ def start_client():
         elif whole_command.startswith("download"):
             s.sendall(whole_command.encode())
 
+            # client requests to delete file
+        elif whole_command.startswith("delete"):
+            try:
+                command, file_path = whole_command.split(" ", 1)
+                s.sendall(whole_command.encode())
+                server_response = s.recv(BUFFER).decode()
+                print(server_response)
+            except ValueError:
+                print("Error: File does not exist")
+            except Exception as e:
+                print(e)
         else:
             print("Error: Command not recognized")
 
