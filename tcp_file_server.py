@@ -49,12 +49,13 @@ def start_server():
                 if(overwrite == "yes"): #client wishes to overwrite duplicate
                     client.send("READY".encode())
                     #file_path = os.path.join("server_files", file_name)
-                    with open(file_path, "wb") as folder: #opening file and replacing contents
+                    with open(file_path, "wb") as new_file: #opening file and replacing contents
                         while True:
                             data = client.recv(BUFFER)
                             if not data:  # stop receiving when data isnt sent
+                                new_file.close()
                                 break
-                            folder.write(data)
+                            new_file.write(data)
 
                 elif(overwrite == "no"): #client does not want to overwrite
                     client.sendall("File not overwritten. Upload aborted".encode())
@@ -63,17 +64,39 @@ def start_server():
                     client.sendall("Error: Command not recognized".encode())
 
             else: #file doesnt already exist on server, write normally
-                file_path = os.path.join("server_files", file_name)
                 client.sendall("READY".encode())
-                with open(file_path, "wb") as folder: #opening shared directory
+                with open(file_path, "wb") as new_file: #opening shared directory
                     while True:
                         data = client.recv(BUFFER)
                         if not data: #stop recieving when data isnt recieved
+                            new_file.close()
                             break
-                        folder.write(data)
+                        new_file.write(data)
+
+        #client requests to delete file
+        elif whole_command.startswith("delete"):
+            command, file_name = whole_command.split(" ", 1)
+            file_path = os.path.join("server_files", file_name)
+
+            if not (os.path.exists(file_path)):
+                client.sendall("Error: File does not exist".encode())
+                return
+            else:
+                try:
+                    with open(file_path, "r+"):
+                        pass
+                except IOError:
+                    client.sendall("Error: File is currently being processed".encode())
+                    return
+            try:
+                os.remove(file_path)
+                client.sendall("Successfully removed".encode())
+            except Exception as e:
+                client.sendall("Error: " + str(e).encode())
 
         else:
             print("Error: Command not recognized")
+            break
 
 #allows file to be run from command line
 if __name__ == "__main__":

@@ -32,21 +32,20 @@ def start_client():
 
             # server is ready to write, send data
             if(ack == "READY"):
-                print("WERE PRINTING")
-                with open(file_path, "rb") as folder:
-                    while chunk := (folder.read(BUFFER)):#loop to send packets until full file is sent
+                with open(file_path, "rb") as local_file:
+                    while chunk := (local_file.read(BUFFER)):#loop to send packets until full file is sent
                         s.send(chunk)
 
             #file is already in server, requests to overwrite
-            elif(ack.startswith("File")):
+            elif(ack.startswith("File already exists.")):
                 overwrite_choice = input(ack)
                 s.send(overwrite_choice.encode())
                 overwrite_ack = s.recv(BUFFER).decode()
 
                 #client chooses to overwrite
                 if(overwrite_ack == "READY"):
-                    with open(file_path, "rb") as folder:
-                        while chunk := (folder.read(BUFFER)):
+                    with open(file_path, "rb") as local_file:
+                        while chunk := (local_file.read(BUFFER)):
                             s.send(chunk)
 
                 elif(overwrite_ack == "File not overwritten. Upload aborted"):
@@ -58,6 +57,17 @@ def start_client():
             else:
                 print("Error: Unexpected server ACK2")
 
+        # client requests to delete file
+        elif whole_command.startswith("delete"):
+            try:
+                command, file_path = whole_command.split(" ", 1)
+                s.sendall(whole_command.encode())
+                server_response = s.recv(BUFFER).decode()
+                print(server_response)
+            except ValueError:
+                print("Error: File does not exist")
+            except Exception as e:
+                 print(e)
 
         elif whole_command.startswith("download"):
             s.sendall(whole_command.encode())
