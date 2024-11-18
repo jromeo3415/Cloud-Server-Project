@@ -51,6 +51,7 @@ def upload_file(whole_command):
         s.send(overwrite_choice.encode())
         overwrite_ack = s.recv(BUFFER).decode()
 
+
         # client chooses to overwrite
         if (overwrite_ack == "READY"):
             with open(file_path, "rb") as local_file:
@@ -58,11 +59,11 @@ def upload_file(whole_command):
                     s.send(chunk)
                 print("Upload complete. ")
 
-        elif (overwrite_ack == "File not overwritten. Upload aborted"):
+        elif (overwrite_ack.startswith("File not overwritten. Upload aborted")):
             print(overwrite_ack)
 
         else:
-            print("Error: Unexpected server ACK")
+            print("Error: Unexpected server ACK1")
 
     else:
         print("Error: Unexpected server ACK")

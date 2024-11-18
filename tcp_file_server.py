@@ -133,6 +133,7 @@ def download(whole_command, client):
     command, file = whole_command.split(" ", 1)
 
 
+#starts server and initiates client thread
 def start_server():
     print("Server started")
 
