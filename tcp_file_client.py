@@ -10,7 +10,6 @@ def connect(whole_command):
         command, ip, port = whole_command.split(" ", 2)
     except ValueError:
         print("Error: Incorrect number of attributes")
-        exit()
 
     try:  # handling unavailable host
         port = int(port) #port is initially a string, converting to int
@@ -19,7 +18,6 @@ def connect(whole_command):
     except:
         print("Error: Could not establish connection to host. "
               "Ensure server is running and host address and port are correct.")
-        exit()
 
 # function to delete files from server
 def delete(whole_command):
