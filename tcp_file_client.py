@@ -70,7 +70,7 @@ def upload_file(whole_command):
 
 def start_client():
     while True: # infinite loop for commands for server
-        whole_command = input("Enter command (connect <host ip> <port>, list, upload <filename>, download <filename>,"
+        whole_command = input("Enter command (connect <host ip> <port>, list, upload <filename>, download <filename>,\n"
                               " delete <filename>, subfolder {create|delete} path/directory, EXIT): ")
 
         # client requests to connect to server
