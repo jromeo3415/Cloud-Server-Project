@@ -59,6 +59,7 @@ def handle_client(client, addr):
                             folder.write(data)
                     client.sendall(f"File {file_name} uploaded successfully.".encode())
 
+	    # client requests to delete a file
             elif(whole_command.startswith("delete ")):
                 delete(whole_command, client)
 
