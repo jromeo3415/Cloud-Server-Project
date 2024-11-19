@@ -59,6 +59,9 @@ def handle_client(client, addr):
                             folder.write(data)
                     client.sendall(f"File {file_name} uploaded successfully.".encode())
 
+            elif(whole_command.startswith("delete ")):
+                delete(whole_command, client)
+
             else:
                 client.sendall("Unknown command.".encode())
 
@@ -74,7 +77,8 @@ def upload(whole_command, client):
     command, file_name = whole_command.split(" ", 1)
     file_path = os.path.join("server_files", file_name)
 
-    if (os.path.exists(file_name)):  # checking if file is already on server
+
+    if (os.path.exists(file_path)):  # checking if file is already on server
         client.sendall("File already exists. Enter 'yes' to overwrite, and 'no' to abort: ".encode())
         overwrite = client.recv(BUFFER).decode().strip()  # clients request to overwrite or not
 

@@ -38,20 +38,25 @@ def upload_file(whole_command):
     command, file_path = whole_command.split(" ", 1)
 
     # checking if file exists in local directory
-    if not os.path.exists(file_path):
-        print(f"Error: File '{file_path}' does not exist locally.")
-        return
+    #if not os.path.exists(file_path):
+     #   print(f"Error: File '{file_path}' does not exist locally.")
+      #  return
 
     s.send(whole_command.encode())
     ack = s.recv(BUFFER).decode()
 
     # server is ready to write, send data
     if (ack == "READY"):
-        with open(file_path, "rb") as local_file:
-            while chunk := (local_file.read(BUFFER)):  # loop to send packets until full file is sent
-                s.send(chunk)
-            print("Upload complete. ")
-            local_file.close()
+        try:
+            with open(file_path, "rb") as local_file:
+                while chunk := (local_file.read(BUFFER)):  # loop to send packets until full file is sent
+                    s.send(chunk)
+                print("Upload complete. ")
+                local_file.close()
+        except FileNotFoundError:
+            print(f"Error: file {file_path} not found on local device.")
+        except Exception as e:
+            print(f"Error: {e}")
 
     # file is already in server, requests to overwrite
     elif (ack.startswith("File already exists.")):
