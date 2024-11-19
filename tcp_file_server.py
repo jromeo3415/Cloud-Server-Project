@@ -34,7 +34,7 @@ def handle_client(client, addr):
                 command, file_name = whole_command.split(" ", 1)
                 file_path = os.path.join("server_files", file_name)
 
-                if os.path.exists(file_path):  # Check if file already exists
+                if os.path.exists(file_name):  # Check if file already exists
                     client.sendall("File already exists. Enter 'yes' to overwrite, 'no' to abort: ".encode())
                     overwrite = client.recv(BUFFER).decode().strip()  # Ask client to overwrite or not
                     if overwrite == "yes":
@@ -74,7 +74,7 @@ def upload(whole_command, client):
     command, file_name = whole_command.split(" ", 1)
     file_path = os.path.join("server_files", file_name)
 
-    if (os.path.exists(file_path)):  # checking if file is already on server
+    if (os.path.exists(file_name)):  # checking if file is already on server
         client.sendall("File already exists. Enter 'yes' to overwrite, and 'no' to abort: ".encode())
         overwrite = client.recv(BUFFER).decode().strip()  # clients request to overwrite or not
 

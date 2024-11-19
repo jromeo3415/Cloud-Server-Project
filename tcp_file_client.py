@@ -1,5 +1,6 @@
 #tpc_file_client
 import socket
+import os
 
 s = socket.socket()  # socket for client tcp file transfer
 BUFFER = 4096 # packet size
@@ -35,6 +36,12 @@ def delete(whole_command):
 # function to upload file to server
 def upload_file(whole_command):
     command, file_path = whole_command.split(" ", 1)
+
+    # checking if file exists in local directory
+    if not os.path.exists(file_path):
+        print(f"Error: File '{file_path}' does not exist locally.")
+        return
+
     s.send(whole_command.encode())
     ack = s.recv(BUFFER).decode()
 
@@ -44,6 +51,7 @@ def upload_file(whole_command):
             while chunk := (local_file.read(BUFFER)):  # loop to send packets until full file is sent
                 s.send(chunk)
             print("Upload complete. ")
+            local_file.close()
 
     # file is already in server, requests to overwrite
     elif (ack.startswith("File already exists.")):
@@ -58,6 +66,7 @@ def upload_file(whole_command):
                 while chunk := (local_file.read(BUFFER)):
                     s.send(chunk)
                 print("Upload complete. ")
+                local_file.close()
 
         elif (overwrite_ack.startswith("File not overwritten. Upload aborted")):
             print(overwrite_ack)
