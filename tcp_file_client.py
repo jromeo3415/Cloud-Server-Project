@@ -28,10 +28,10 @@ def delete(whole_command):
         s.sendall(whole_command.encode())
         server_response = s.recv(BUFFER).decode()
         print(server_response)
-    except ValueError:
+    except ValueError: # handling file not on local device
         print("Error: File does not exist")
-    except Exception as e:
-        print(e)
+    except Exception as e: # handling when client tries to delete without connection to server
+        print(f"Connect to server first!")
 
 
 # function to upload file to server
@@ -43,7 +43,11 @@ def upload_file(whole_command):
         print(f"Error: File '{file_path}' does not exist locally.")
         return
 
-    s.send(whole_command.encode())
+    try:
+        s.send(whole_command.encode())
+    except OSError as e:
+        print("Connect to server first!")
+        return
     ack = s.recv(BUFFER).decode()
 
     # server is ready to write, send data

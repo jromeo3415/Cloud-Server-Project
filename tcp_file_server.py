@@ -26,9 +26,9 @@ def handle_client(client, addr):
             if whole_command == "list":
                 files = os.listdir("server_files")
                 if files:
-                    client.sendall(f"Files available:\n{chr(10).join(files)}\n".encode())
+                    client.sendall(f"Files available:\n{chr(10).join(files)}".encode())
                 else:
-                    client.sendall("No files available.\n".encode())
+                    client.sendall("No files available.".encode())
 
             # Handle 'upload' command
             elif whole_command.startswith("upload"):
