@@ -14,10 +14,12 @@ BUFFER = 4096
 def handle_client(client, addr):
     print(f"Handling client {client}")
 
+
     try:
         while True:
             # Receive the command from the client
             whole_command = client.recv(BUFFER).decode().strip()
+            print(whole_command)
             if not whole_command:
                 break  # Client disconnected
 
@@ -33,8 +35,9 @@ def handle_client(client, addr):
             elif whole_command.startswith("upload"):
                 command, file_name = whole_command.split(" ", 1)
                 file_path = os.path.join("server_files", file_name)
+                print(file_path)
 
-                if os.path.exists(file_name):  # Check if file already exists
+                if os.path.exists(file_path):  # Check if file already exists
                     client.sendall("File already exists. Enter 'yes' to overwrite, 'no' to abort: ".encode())
                     overwrite = client.recv(BUFFER).decode().strip()  # Ask client to overwrite or not
                     if overwrite == "yes":
@@ -59,7 +62,7 @@ def handle_client(client, addr):
                             folder.write(data)
                     client.sendall(f"File {file_name} uploaded successfully.".encode())
 
-	    # client requests to delete a file
+	        # client requests to delete a file
             elif(whole_command.startswith("delete ")):
                 delete(whole_command, client)
 

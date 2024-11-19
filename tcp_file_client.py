@@ -38,16 +38,16 @@ def upload_file(whole_command):
     command, file_path = whole_command.split(" ", 1)
 
     # checking if file exists in local directory
-    #if not os.path.exists(file_path):
-     #   print(f"Error: File '{file_path}' does not exist locally.")
-      #  return
+    if not os.path.exists(file_path):
+        print(f"Error: File '{file_path}' does not exist locally.")
+        return
 
     s.send(whole_command.encode())
     ack = s.recv(BUFFER).decode()
 
     # server is ready to write, send data
     if (ack == "READY"):
-        try:
+        try: # error handling for file not on local machine
             with open(file_path, "rb") as local_file:
                 while chunk := (local_file.read(BUFFER)):  # loop to send packets until full file is sent
                     s.send(chunk)
