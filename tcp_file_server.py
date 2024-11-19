@@ -19,7 +19,6 @@ def handle_client(client, addr):
         while True:
             # Receive the command from the client
             whole_command = client.recv(BUFFER).decode().strip()
-            print(whole_command)
             if not whole_command:
                 break  # Client disconnected
 
@@ -35,7 +34,6 @@ def handle_client(client, addr):
             elif whole_command.startswith("upload"):
                 command, file_name = whole_command.split(" ", 1)
                 file_path = os.path.join("server_files", file_name)
-                print(file_path)
 
                 if os.path.exists(file_path):  # Check if file already exists
                     client.sendall("File already exists. Enter 'yes' to overwrite, 'no' to abort: ".encode())
@@ -45,10 +43,13 @@ def handle_client(client, addr):
                         with open(file_path, "wb") as folder:
                             while True:
                                 data = client.recv(BUFFER)
-                                if not data:  # End of file transmission
+                                if b"<EOF>" in data:  # End of file transmission character
+                                    folder.write(data.replace(b"<EOF>", b"")) # taking eof out, closing file, then breaking loop
+                                    folder.close()
                                     break
                                 folder.write(data)
-                        client.sendall(f"File {file_name} uploaded successfully.".encode())
+
+                        #client.sendall(f"File {file_name} uploaded successfully.".encode())
                     else:
                         client.sendall("File not overwritten. Upload aborted.".encode())
                 else:
@@ -57,10 +58,12 @@ def handle_client(client, addr):
                     with open(file_path, "wb") as folder:
                         while True:
                             data = client.recv(BUFFER)
-                            if not data:  # End of file transmission
+                            if b"<EOF>" in data:  # End of file transmission character
+                                folder.write(data.replace(b"<EOF>", b""))  # taking eof out, closing file, then breaking loop
+                                folder.close()
                                 break
                             folder.write(data)
-                    client.sendall(f"File {file_name} uploaded successfully.".encode())
+                    #client.sendall(f"File {file_name} uploaded successfully.".encode())
 
 	        # client requests to delete a file
             elif(whole_command.startswith("delete ")):

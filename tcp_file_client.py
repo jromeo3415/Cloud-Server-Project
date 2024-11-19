@@ -1,6 +1,7 @@
 #tpc_file_client
 import socket
 import os
+import time
 
 s = socket.socket()  # socket for client tcp file transfer
 BUFFER = 4096 # packet size
@@ -53,6 +54,7 @@ def upload_file(whole_command):
                     s.send(chunk)
                 print("Upload complete. ")
                 local_file.close()
+                s.send(b"<EOF>")
         except FileNotFoundError:
             print(f"Error: file {file_path} not found on local device.")
         except Exception as e:
@@ -72,6 +74,8 @@ def upload_file(whole_command):
                     s.send(chunk)
                 print("Upload complete. ")
                 local_file.close()
+                s.send(b"<EOF>")
+
 
         elif (overwrite_ack.startswith("File not overwritten. Upload aborted")):
             print(overwrite_ack)
@@ -85,8 +89,11 @@ def upload_file(whole_command):
 
 def start_client():
     while True: # infinite loop for commands for server
-        whole_command = input("Enter command (connect <host ip> <port>, list, upload <filename>, download <filename>,\n"
+        try:
+            whole_command = input("Enter command (connect <host ip> <port>, list, upload <filename>, download <filename>,\n"
                               " delete <filename>, subfolder {create|delete} path/directory, EXIT): ")
+        except Exception as e:
+            print(f"Error: {e}")
 
         # client requests to connect to server
         if whole_command.startswith("connect "):
