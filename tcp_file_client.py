@@ -53,12 +53,25 @@ def upload_file(whole_command):
     # server is ready to write, send data
     if (ack == "READY"):
         try: # error handling for file not on local machine
+            # start timer for performance evaluation
+            start_time = time.time()
             with open(file_path, "rb") as local_file:
+                total_sent = 0 # used to solve upload rate
                 while chunk := (local_file.read(BUFFER)):  # loop to send packets until full file is sent
                     s.send(chunk)
+                    total_sent += len(chunk)
                 print("Upload complete. ")
                 local_file.close()
                 s.send(b"<EOF>")
+
+             end_time = time.time()
+
+            # calculates the file transfer time and upload rate in MB/s
+            transfer_time = end_time - start_time
+            upload_rate = total_sent / transfer_time / (1024 * 1024)
+
+            print(f"File successfully sent to server. Transfer Time: {transfer_time:.2f} sec, Upload Rate: {upload_rate:.2f} MB/s")
+            
         except FileNotFoundError:
             print(f"Error: file {file_path} not found on local device.")
         except Exception as e:
