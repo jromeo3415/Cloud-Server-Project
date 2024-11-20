@@ -50,6 +50,14 @@ def upload_file(whole_command):
         return
     ack = s.recv(BUFFER).decode()
 
+    #measureing server resposne time for evaluaion
+    start_time = time.time()  # Start time 
+    ack = s.recv(BUFFER).decode()
+    end_time = time.time()  # End time 
+    response_time = end_time - start_time
+    print(f"Server Response Time for upload: {response_time:.2f} sec")
+
+
     # server is ready to write, send data
     if (ack == "READY"):
         try: # error handling for file not on local machine
