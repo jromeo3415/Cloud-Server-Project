@@ -123,6 +123,36 @@ def upload_file(whole_command):
         print("Error: Unexpected server ACK")
 
 
+def download_file(whole_command):
+    try:
+        command, file_name = whole_command.split(" ", 1)
+        s.sendall(whole_command.encode())
+        ack = s.recv(BUFFER).decode()
+
+        if ack == "READY":
+            with open(file_name, "wb") as file:
+                while True:
+                    data = s.recv(BUFFER) # receive data in chunks
+                    if b"<EOF>" in data: # check for end of file
+                        file.write(data.replace(b"<EOF>", b""))
+                        break
+                    file.write(data) # write chunk to file
+            print(f"Download complete. ")
+        else:
+            print(ack)
+    except Exception as e:
+        print(f"Error downloading file: {e}")
+
+
+def handle_subfolder(whole_command):
+    try:
+        s.sendall(whole_command.encode())
+        response = s.recv(BUFFER).decode()
+        print(response)
+    except Exception as e:
+        print(f"Error with subfolder operation: {e}")
+
+
 def start_client():
     while True: # infinite loop for commands for server
         try:
@@ -149,8 +179,13 @@ def start_client():
         elif whole_command.startswith("delete"):
             delete(whole_command)
 
+        # client requests to download file
         elif whole_command.startswith("download"):
-            s.sendall(whole_command.encode())
+            download_file(whole_command)
+
+        # client requests to create/delete subfolder
+        elif whole_command.startswith("subfolder"):
+            handle_subfolder(whole_command)
 
         else:
             print("Error: Command not recognized")
