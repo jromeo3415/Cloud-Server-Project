@@ -123,6 +123,7 @@ def upload_file(whole_command):
         print("Error: Unexpected server ACK")
 
 
+# function to download file from server
 def download_file(whole_command):
     try:
         command, file_name = whole_command.split(" ", 1)
@@ -144,6 +145,7 @@ def download_file(whole_command):
         print(f"Error downloading file: {e}")
 
 
+# function to create or delete subfolder in server
 def handle_subfolder(whole_command):
     try:
         s.sendall(whole_command.encode())
@@ -151,6 +153,20 @@ def handle_subfolder(whole_command):
         print(response)
     except Exception as e:
         print(f"Error with subfolder operation: {e}")
+
+
+# function to exit server
+def handle_exit(whole_command):
+    try:
+        s.sendall(whole_command.encode())
+        response = s.recv(BUFFER).decode()
+        print(response)
+        s.close()  # close connection
+        print("Connection closed. Exiting program.")
+        sys.exit(0)  # exit program
+    except Exception as e:
+        print(f"Error during exit: {e}")
+        sys.exit(1)
 
 
 def start_client():
@@ -186,6 +202,10 @@ def start_client():
         # client requests to create/delete subfolder
         elif whole_command.startswith("subfolder"):
             handle_subfolder(whole_command)
+
+        # client requests to exit
+        elif whole_command.startswith("EXIT"):
+            handle_exit(whole_command)
 
         else:
             print("Error: Command not recognized")
