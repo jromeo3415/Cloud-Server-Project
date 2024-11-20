@@ -69,7 +69,8 @@ def upload_file(whole_command):
             # calculates the file transfer time and upload rate in MB/s
             transfer_time = end_time - start_time
             upload_rate = total_sent / transfer_time / (1024 * 1024)
-
+            
+            #measurements go to two decimals for readability
             print(f"File successfully sent to server. Transfer Time: {transfer_time:.2f} sec, Upload Rate: {upload_rate:.2f} MB/s")
             
         except FileNotFoundError:
@@ -86,12 +87,22 @@ def upload_file(whole_command):
 
         # client chooses to overwrite
         if (overwrite_ack == "READY"):
+            # must include performance evaluations for already uploaded files
+            start_time = time.time()
             with open(file_path, "rb") as local_file:
                 while chunk := (local_file.read(BUFFER)):
                     s.send(chunk)
                 print("Upload complete. ")
                 local_file.close()
                 s.send(b"<EOF>")
+
+            end_time = time.time()
+
+            transfer_time = end_time - start_time
+            # since this file has already been uploaded, the total_sent variable isnt needed
+            upload_rate = os.path.getsize(file_path) / transfer_time / (1024 * 1024)
+
+            print(f"File successfully sent to server. Transfer Time: {transfer_time:.2f} sec, Upload Rate: {upload_rate:.2f} MB/s")
 
 
         elif (overwrite_ack.startswith("File not overwritten. Upload aborted")):
