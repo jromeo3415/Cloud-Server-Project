@@ -76,6 +76,10 @@ def handle_client(client, addr):
 	    # client requests to create/delete subfolder
             elif whole_command.startswith("subfolder "):
                 subfolder(whole_command, client)
+
+	    # client requests to exit
+            elif whole_command == "EXIT":
+                break
 		    
             else:
                 client.sendall("Unknown command.".encode())
