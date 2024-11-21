@@ -49,7 +49,6 @@ def upload_file(whole_command):
     except OSError as e:
         print("Connect to server first!")
         return
-    ack = s.recv(BUFFER).decode()
 
     # measureing server resposne time for evaluaion
     start_time = time.time()  # Start time 
