@@ -153,7 +153,7 @@ def delete(whole_command, client):
 
 # function to download files to client
 def download(whole_command, client):
-    command, file = whole_command.split(" ", 1)
+    command, file_name = whole_command.split(" ", 1)
     file_path = os.path.join("server_files", file_name)
 
     if not (os.path.exists(file_path)):
