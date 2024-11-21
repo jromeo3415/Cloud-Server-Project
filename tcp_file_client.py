@@ -51,21 +51,20 @@ def upload_file(whole_command):
         return
     ack = s.recv(BUFFER).decode()
 
-    #measureing server resposne time for evaluaion
+    # measureing server resposne time for evaluaion
     start_time = time.time()  # Start time 
     ack = s.recv(BUFFER).decode()
     end_time = time.time()  # End time 
     response_time = end_time - start_time
     print(f"Server Response Time for upload: {response_time:.2f} sec")
 
-
     # server is ready to write, send data
     if (ack == "READY"):
-        try: # error handling for file not on local machine
+        try:  # error handling for file not on local machine
             # start timer for performance evaluation
             start_time = time.time()
             with open(file_path, "rb") as local_file:
-                total_sent = 0 # used to solve upload rate
+                total_sent = 0  # used to solve upload rate
                 while chunk := (local_file.read(BUFFER)):  # loop to send packets until full file is sent
                     s.send(chunk)
                     total_sent += len(chunk)
@@ -73,15 +72,16 @@ def upload_file(whole_command):
                 local_file.close()
                 s.send(b"<EOF>")
 
-             end_time = time.time()
+            end_time = time.time()
 
             # calculates the file transfer time and upload rate in MB/s
             transfer_time = end_time - start_time
             upload_rate = total_sent / transfer_time / (1024 * 1024)
-            
-            #measurements go to two decimals for readability
-            print(f"File successfully sent to server. Transfer Time: {transfer_time:.2f} sec, Upload Rate: {upload_rate:.2f} MB/s")
-            
+
+            # measurements go to two decimals for readability
+            print(
+                f"File successfully sent to server. Transfer Time: {transfer_time:.2f} sec, Upload Rate: {upload_rate:.2f} MB/s")
+
         except FileNotFoundError:
             print(f"Error: file {file_path} not found on local device.")
         except Exception as e:
@@ -92,7 +92,6 @@ def upload_file(whole_command):
         overwrite_choice = input(ack)
         s.send(overwrite_choice.encode())
         overwrite_ack = s.recv(BUFFER).decode()
-
 
         # client chooses to overwrite
         if (overwrite_ack == "READY"):
@@ -111,8 +110,8 @@ def upload_file(whole_command):
             # since this file has already been uploaded, the total_sent variable isnt needed
             upload_rate = os.path.getsize(file_path) / transfer_time / (1024 * 1024)
 
-            print(f"File successfully sent to server. Transfer Time: {transfer_time:.2f} sec, Upload Rate: {upload_rate:.2f} MB/s")
-
+            print(
+                f"File successfully sent to server. Transfer Time: {transfer_time:.2f} sec, Upload Rate: {upload_rate:.2f} MB/s")
 
         elif (overwrite_ack.startswith("File not overwritten. Upload aborted")):
             print(overwrite_ack)
