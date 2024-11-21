@@ -49,7 +49,6 @@ def handle_client(client, addr):
                                     break
                                 folder.write(data)
 
-                        #client.sendall(f"File {file_name} uploaded successfully.".encode())
                     else:
                         client.sendall("File not overwritten. Upload aborted.".encode())
                 else:
@@ -63,12 +62,23 @@ def handle_client(client, addr):
                                 folder.close()
                                 break
                             folder.write(data)
-                    #client.sendall(f"File {file_name} uploaded successfully.".encode())
 
-	        # client requests to delete a file
-            elif(whole_command.startswith("delete ")):
+            # client requests to delete a file
+            elif whole_command.startswith("delete "):
                 delete(whole_command, client)
+		    
+            # client requests to download a file
+            elif whole_command.startswith("download "):
+                download(whole_command, client)
 
+            # client requests to create/delete subfolder
+            elif whole_command.startswith("subfolder "):
+                subfolder(whole_command, client)
+
+            # client requests to exit
+            elif whole_command == "EXIT":
+                break
+		    
             else:
                 client.sendall("Unknown command.".encode())
 
@@ -141,7 +151,50 @@ def delete(whole_command, client):
 
 # function to download files to client
 def download(whole_command, client):
-    command, file = whole_command.split(" ", 1)
+    command, file_name = whole_command.split(" ", 1)
+    file_path = os.path.join("server_files", file_name)
+
+    if not (os.path.exists(file_path)):
+        client.sendall("Error: File does not exist".encode())
+        return
+    try:
+        with open(file_path, "rb") as file: # open file
+            client.sendall("READY".encode())
+            while chunk := file.read(BUFFER): # send files in chunks
+                client.send(chunk)
+            client.send(b"<EOF>") # end of transfer
+    except Exception as e:
+        client.sendall("Error: " + str(e).encode())
+
+
+# function to create or delete subfolders
+def subfolder(whole_command, client):
+    try:
+        command, action, file_name = whole_command.split(" ", 2)
+        file_path = os.path.join("server_files", file_name)
+
+        # client create subfolder
+        if action == "create":
+            os.makedirs(file_path, exist_ok=True)
+            client.sendall(f"Successfully created folder".encode())
+
+        # client delete subfolder
+        elif action == "delete":
+            if os.path.exists(file_path): # check if directory exists
+                if os.path.isdir(file_path): # check if path is directory
+                    if not os.listdir(file_path):  # check if directory is empty
+                        os.rmdir(file_path)
+                        client.sendall(f"Successfully deleted folder".encode())
+                    else:
+                        client.sendall("Error: Folder is not empty".encode())
+                else:
+                    client.sendall("Error: Path is not a folder".encode())
+            else:
+                client.sendall("Error: Folder does not exist".encode())
+        else:
+            client.sendall("Error: Invalid subfolder action".encode())
+    except Exception as e:
+        client.sendall("Error: " + str(e).encode())
 
 
 #starts server and initiates client thread

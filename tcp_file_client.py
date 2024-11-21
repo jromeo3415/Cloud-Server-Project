@@ -2,6 +2,7 @@
 import socket
 import os
 import time
+import sys
 
 s = socket.socket()  # socket for client tcp file transfer
 BUFFER = 4096 # packet size
@@ -50,15 +51,37 @@ def upload_file(whole_command):
         return
     ack = s.recv(BUFFER).decode()
 
+    # measureing server resposne time for evaluaion
+    start_time = time.time()  # Start time 
+    ack = s.recv(BUFFER).decode()
+    end_time = time.time()  # End time 
+    response_time = end_time - start_time
+    print(f"Server Response Time for upload: {response_time:.2f} sec")
+
     # server is ready to write, send data
     if (ack == "READY"):
-        try: # error handling for file not on local machine
+        try:  # error handling for file not on local machine
+            # start timer for performance evaluation
+            start_time = time.time()
             with open(file_path, "rb") as local_file:
+                total_sent = 0  # used to solve upload rate
                 while chunk := (local_file.read(BUFFER)):  # loop to send packets until full file is sent
                     s.send(chunk)
+                    total_sent += len(chunk)
                 print("Upload complete. ")
                 local_file.close()
                 s.send(b"<EOF>")
+
+            end_time = time.time()
+
+            # calculates the file transfer time and upload rate in MB/s
+            transfer_time = end_time - start_time
+            upload_rate = total_sent / transfer_time / (1024 * 1024)
+
+            # measurements go to two decimals for readability
+            print(
+                f"File successfully sent to server. Transfer Time: {transfer_time:.2f} sec, Upload Rate: {upload_rate:.2f} MB/s")
+
         except FileNotFoundError:
             print(f"Error: file {file_path} not found on local device.")
         except Exception as e:
@@ -70,9 +93,10 @@ def upload_file(whole_command):
         s.send(overwrite_choice.encode())
         overwrite_ack = s.recv(BUFFER).decode()
 
-
         # client chooses to overwrite
         if (overwrite_ack == "READY"):
+            # must include performance evaluations for already uploaded files
+            start_time = time.time()
             with open(file_path, "rb") as local_file:
                 while chunk := (local_file.read(BUFFER)):
                     s.send(chunk)
@@ -80,6 +104,14 @@ def upload_file(whole_command):
                 local_file.close()
                 s.send(b"<EOF>")
 
+            end_time = time.time()
+
+            transfer_time = end_time - start_time
+            # since this file has already been uploaded, the total_sent variable isnt needed
+            upload_rate = os.path.getsize(file_path) / transfer_time / (1024 * 1024)
+
+            print(
+                f"File successfully sent to server. Transfer Time: {transfer_time:.2f} sec, Upload Rate: {upload_rate:.2f} MB/s")
 
         elif (overwrite_ack.startswith("File not overwritten. Upload aborted")):
             print(overwrite_ack)
@@ -89,6 +121,52 @@ def upload_file(whole_command):
 
     else:
         print("Error: Unexpected server ACK")
+
+
+# function to download file from server
+def download_file(whole_command):
+    try:
+        command, file_name = whole_command.split(" ", 1)
+        s.sendall(whole_command.encode())
+        ack = s.recv(BUFFER).decode()
+
+        if ack == "READY":
+            with open(file_name, "wb") as file:
+                while True:
+                    data = s.recv(BUFFER) # receive data in chunks
+                    if b"<EOF>" in data: # check for end of file
+                        file.write(data.replace(b"<EOF>", b""))
+                        break
+                    file.write(data) # write chunk to file
+            print(f"Download complete. ")
+        else:
+            print(ack)
+    except Exception as e:
+        print(f"Error downloading file: {e}")
+
+
+# function to create or delete subfolder in server
+def handle_subfolder(whole_command):
+    try:
+        s.sendall(whole_command.encode())
+        response = s.recv(BUFFER).decode()
+        print(response)
+    except Exception as e:
+        print(f"Error with subfolder operation: {e}")
+
+
+# function to exit server
+def handle_exit(whole_command):
+    try:
+        s.sendall(whole_command.encode())
+        response = s.recv(BUFFER).decode()
+        print(response)
+        s.close()  # close connection
+        print("Connection closed. Exiting program.")
+        sys.exit(0)  # exit program
+    except Exception as e:
+        print(f"Error during exit: {e}")
+        sys.exit(1)
 
 
 def start_client():
@@ -117,8 +195,17 @@ def start_client():
         elif whole_command.startswith("delete"):
             delete(whole_command)
 
+        # client requests to download file
         elif whole_command.startswith("download"):
-            s.sendall(whole_command.encode())
+            download_file(whole_command)
+
+        # client requests to create/delete subfolder
+        elif whole_command.startswith("subfolder"):
+            handle_subfolder(whole_command)
+
+        # client requests to exit
+        elif whole_command.startswith("EXIT"):
+            handle_exit(whole_command)
 
         else:
             print("Error: Command not recognized")
