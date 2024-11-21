@@ -2,6 +2,7 @@
 import socket
 import os
 import time
+import sys
 
 s = socket.socket()  # socket for client tcp file transfer
 BUFFER = 4096 # packet size
