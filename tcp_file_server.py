@@ -10,15 +10,14 @@ port = 8080  # change value to whatever port you would like to use
 os.makedirs("server_files", exist_ok=True)  # directory holding uploaded files
 BUFFER = 4096
 
-
 # Store user credentials
 USERS = {
-    "user1": "pass123",
-    "user2": "pass123"
+    "user": "pass"
 }
 
 # Generate public and private keys
 public_key, private_key = newkeys(2048)
+
 
 # function to handle user authentication
 def authenticate_client(client):
