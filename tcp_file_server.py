@@ -3,6 +3,7 @@ import socket
 import sys
 import os
 import threading
+from rsa import newkeys, decrypt
 
 host = '0.0.0.0'  # does not need to be changed. allows server to listen on all addresses
 port = 8080  # change value to whatever port you would like to use
@@ -10,9 +11,49 @@ os.makedirs("server_files", exist_ok=True)  # directory holding uploaded files
 BUFFER = 4096
 
 
+# Store user credentials
+USERS = {
+    "user1": "pass123",
+    "user2": "pass123"
+}
+
+# Generate public and private keys
+public_key, private_key = newkeys(2048)
+
+# function to handle user authentication
+def authenticate_client(client):
+    while True:
+        try:
+            # Send public key to client
+            client.sendall(f"{public_key.n}:{public_key.e}".encode())
+
+            # Receive encrypted credentials
+            encrypted_creds = client.recv(BUFFER)
+            decrypted_creds = decrypt(encrypted_creds, private_key).decode()
+            username, password = decrypted_creds.split(':')
+
+            # Verify credentials
+            if username in USERS and USERS[username] == password:
+                client.sendall("Authorization Success".encode())
+                return True
+            client.sendall("Authorization Failed".encode())
+
+        except Exception as e:
+            print(f"Authentication error: {e}")
+            return False
+
+
 # function to handle client requests after thread is made
 def handle_client(client, addr):
-    print(f"Handling client {client}")
+    print(f"New connection from {addr}")
+    
+    # Check user credentials
+    if not authenticate_client(client):
+        print(f"Authentication failed for {addr}")
+        client.close()
+        return
+
+    print(f"Handling authenticated client {client}")
 
     try:
         while True:
