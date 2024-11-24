@@ -3,9 +3,49 @@ import socket
 import os
 import time
 import sys
+<<<<<<< HEAD
+=======
+from rsa import encrypt, PublicKey
+from easygui import multpasswordbox
+>>>>>>> 63c96e5f67b9c98e808b07c90da788839c58ce55
 
 s = socket.socket()  # socket for client tcp file transfer
 BUFFER = 4096 # packet size
+
+
+def authenticate(s):
+    try:
+        # Get public key
+        key_data = s.recv(BUFFER).decode()
+        key_parts = key_data.split(':')
+        n = int(key_parts[0])
+        e = int(key_parts[1])
+        server_key = PublicKey(n, e)
+
+        # Ask client for credentials 
+        # Make GUI to use in any compatible IDE/terminal
+        msg = "Enter your credentials!"
+        title = "Login"
+        field_names = ["Username", "Password"]
+        field_values = multpasswordbox(msg, title, field_names)
+        username, password = field_values
+
+        # Encrypt and send credentials
+        creds = f"{username}:{password}"
+        encrypted_creds = encrypt(creds.encode(), server_key)
+        s.sendall(encrypted_creds)
+
+        # Check authentication response
+        response = s.recv(BUFFER).decode()
+        if response == "Authorization Success":
+            print("Authentication successful!")
+            return True
+        print("Authentication failed! Please try again.")
+
+    except Exception as e:
+        print(f"Authentication error: {e}")
+        return False
+
 
 # function to initialize connection to server
 def connect(whole_command):
@@ -17,10 +57,16 @@ def connect(whole_command):
     try:  # handling unavailable host
         port = int(port) #port is initially a string, converting to int
         s.connect((ip, port))
-        print("Connected to %s on port: %s" % (ip, port))
+
+        # Check if authentication is successful to connect
+        while True:
+            if authenticate(s):
+                print("Connected to %s on port: %s" % (ip, port))
+                break
     except:
         print("Error: Could not establish connection to host. "
               "Ensure server is running and host address and port are correct.")
+
 
 # function to delete files from server
 def delete(whole_command):
@@ -49,7 +95,13 @@ def upload_file(whole_command):
     except OSError as e:
         print("Connect to server first!")
         return
+
+    # measureing server resposne time for evaluaion
+    start_time = time.time()  # Start time 
     ack = s.recv(BUFFER).decode()
+    end_time = time.time()  # End time 
+    response_time = end_time - start_time
+    print(f"Server Response Time for upload: {response_time:.2f} sec")
 
     # measureing server resposne time for evaluaion
     start_time = time.time()  # Start time 
