@@ -15,6 +15,7 @@ class Server:
             'file_transfer_time': [],
             'throughput': [],
         }
+        # create a dataframe to holw performance metrics
         self.df = pd.DataFrame(columns=['upload_speed', 'download_speed', 'file_transfer_time', 'throughput'])
 
     def start(self): #allow server to accept connections
