@@ -32,7 +32,7 @@ class Server:
     def handle_client(self, conn):
         start_time = time.time()
         
-        # Receive the file size
+        # Receive file size
         file_size = int(conn.recv(1024).decode())
         print(f"File size to be transferred: {file_size} bytes")
         
@@ -45,6 +45,7 @@ class Server:
                 break
             bytes_received += len(data)
 
+        # time.time() will be the time the transfer stopped
         transfer_time = time.time() - transfer_start_time
         print(f"File transfer time: {transfer_time} seconds")
         
@@ -57,14 +58,14 @@ class Server:
         throughput = bytes_received / transfer_time
         self.stats['throughput'].append(throughput)
 
-        # Add to the DataFrame
+        # Add values to the DataFrame
         self.df = self.df.append({
             'download_speed': download_speed,
             'file_transfer_time': transfer_time,
             'throughput': throughput,
         }, ignore_index=True)
 
-        # Log results
+        # display results
         print(f"Download Speed: {download_speed} B/s, Transfer Time: {transfer_time} s, Throughput: {throughput} B/s")
 
         # Close the connection
@@ -93,6 +94,7 @@ class Client:
             with open(self.file_path, 'rb') as f:
                 start_time = time.time()
                 bytes_sent = 0
+                
                 while (chunk := f.read(1024)):
                     s.sendall(chunk)
                     bytes_sent += len(chunk)
