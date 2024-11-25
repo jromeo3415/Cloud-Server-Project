@@ -6,6 +6,7 @@ import threading
 
 # Server-Side Code
 class Server:
+    # initialize a dictionary to store the server operations
     def __init__(self, host='127.0.0.1', port=65432):
         self.host = host
         self.port = port
@@ -15,14 +16,18 @@ class Server:
             'file_transfer_time': [],
             'throughput': [],
         }
-        # create a dataframe to holw performance metrics
+        # create a dataframe to hold performance metrics 
+        # this dataframe's columns will correspond to the stats dictionary
         self.df = pd.DataFrame(columns=['upload_speed', 'download_speed', 'file_transfer_time', 'throughput'])
 
-    def start(self): #allow server to accept connections
+    # allow server to accept connections
+    def start(self): 
+        # create a new socket with the correct format
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
             s.bind((self.host, self.port))
             s.listen(1)
             print(f"Server listening on {self.host}:{self.port}")
+            # this is an infinite loop that allows the server to continue accepting connections
             while True:
                 conn, addr = s.accept()
                 print(f"Connected by {addr}")
@@ -39,6 +44,7 @@ class Server:
         # Track the time for the file transfer
         transfer_start_time = time.time()
         bytes_received = 0
+        # loop until file is completely recieved 
         while bytes_received < file_size:
             data = conn.recv(1024)
             if not data:
@@ -77,6 +83,7 @@ class Server:
 
 # Client-Side Code
 class Client:
+    # initialize the host, port and file path
     def __init__(self, server_host='127.0.0.1', server_port=65432, file_path='test_file.txt'):
         self.server_host = server_host
         self.server_port = server_port
