@@ -3,6 +3,7 @@ import time
 import os
 import pandas as pd
 import threading
+import csv
 
 # Server-Side Code
 class Server:
@@ -77,8 +78,27 @@ class Server:
         # Close the connection
         conn.close()
 
-    def save_statistics(self): # save to a CSV file
-        self.df.to_csv('/path/to/directory/network_statistics.csv', index=False)
+    def save_statistics(self):
+        # Open the CSV file in write mode
+        with open('network_statistics.csv', 'w', newline='') as csvfile:
+            # Define the fieldnames (column names for the CSV file)
+            fieldnames = ['upload_speed', 'download_speed', 'file_transfer_time', 'throughput']
+        
+            # DictWriter allows you to write the dictionaries into the csv file
+            writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+        
+            # Write the column names into the CSV file
+            writer.writeheader()
+        
+            # Write the data (the rows) to the CSV file
+            for index, row in self.df.iterrows():
+                writer.writerow({
+                    'upload_speed': row['upload_speed'],
+                    'download_speed': row['download_speed'],
+                    'file_transfer_time': row['file_transfer_time'],
+                    'throughput': row['throughput'],
+                })
+    
         print("Statistics saved to network_statistics.csv")
 
 # Client-Side Code
