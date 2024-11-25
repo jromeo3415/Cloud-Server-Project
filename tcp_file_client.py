@@ -98,8 +98,23 @@ def upload_file(whole_command):
     if (ack == "READY"):
         try:  # error handling for file not on local machine
             with open(file_path, "rb") as local_file:
+                # start the performance eval tracker for the upload speed
+                client = performance_analysis.Client(server_host = '127.0.0.1", server_port=65432, file_path=file_path)
+                start_time = start.time()
+                bytes_sent = 0
+                
                 while chunk := (local_file.read(BUFFER)):  # loop to send packets until full file is sent
                     s.send(chunk)
+                    # increase the bytes after .send()
+                    bytes_sent += len(chunk)
+                transfer_time = time.time() - start_time
+
+                # Call performance metrics after upload
+                upload_speed = bytes_sent / transfer_time
+                throughput = bytes_sent / transfer_time
+                print(f"Upload complete. Time taken: {transfer_time} s, Upload speed: {upload_speed} B/s")
+                print(f"Throughput: {throughput} B/s")
+                
                 print("Upload complete. ")
                 local_file.close()
                 s.send(b"<EOF>")
@@ -142,6 +157,8 @@ def download_file(whole_command):
         ack = s.recv(BUFFER).decode()
 
         if ack == "READY":
+            # start the performance eval tracker for download
+            server = performance_analysis.Server(host="127.0.0.1", port=65432)
             with open(file_name, "wb") as file:
                 while True:
                     data = s.recv(BUFFER) # receive data in chunks
