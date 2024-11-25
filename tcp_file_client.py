@@ -5,6 +5,7 @@ import time
 import sys
 from rsa import encrypt, PublicKey
 from easygui import multpasswordbox
+import performance_analysis
 
 s = socket.socket()  # socket for client tcp file transfer
 BUFFER = 4096 # packet size
