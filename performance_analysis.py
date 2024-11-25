@@ -21,6 +21,8 @@ class Server:
         # this dataframe's columns will correspond to the stats dictionary
         self.df = pd.DataFrame(columns=['upload_speed', 'download_speed', 'file_transfer_time', 'throughput'])
 
+        self.write_lock = threading.Lock()
+    
     # allow server to accept connections
     def start(self): 
         # create a new socket with the correct format
