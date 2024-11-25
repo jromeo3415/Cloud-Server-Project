@@ -17,8 +17,7 @@ class Server:
         }
         self.df = pd.DataFrame(columns=['upload_speed', 'download_speed', 'file_transfer_time', 'throughput'])
 
-    def start(self):
-        """Start the server to accept client connections."""
+    def start(self): #allow server to accept connections
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
             s.bind((self.host, self.port))
             s.listen(1)
@@ -30,7 +29,6 @@ class Server:
                 client_thread.start()
 
     def handle_client(self, conn):
-        """Handle client communication and track statistics."""
         start_time = time.time()
         
         # Receive the file size
@@ -58,7 +56,7 @@ class Server:
         throughput = bytes_received / transfer_time
         self.stats['throughput'].append(throughput)
 
-        # Add results to the DataFrame
+        # Add to the DataFrame
         self.df = self.df.append({
             'download_speed': download_speed,
             'file_transfer_time': transfer_time,
@@ -71,8 +69,7 @@ class Server:
         # Close the connection
         conn.close()
 
-    def save_statistics(self):
-        """Save statistics to a CSV file."""
+    def save_statistics(self): # save to a CSV file
         self.df.to_csv('network_statistics.csv', index=False)
         print("Statistics saved to network_statistics.csv")
 
@@ -84,7 +81,6 @@ class Client:
         self.file_path = file_path
 
     def send_file(self):
-        """Send a file to the server and track statistics."""
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
             s.connect((self.server_host, self.server_port))
 
