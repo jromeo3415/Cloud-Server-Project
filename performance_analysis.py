@@ -78,7 +78,7 @@ class Server:
         conn.close()
 
     def save_statistics(self): # save to a CSV file
-        self.df.to_csv('network_statistics.csv', index=False)
+        self.df.to_csv('/path/to/directory/network_statistics.csv', index=False)
         print("Statistics saved to network_statistics.csv")
 
 # Client-Side Code
