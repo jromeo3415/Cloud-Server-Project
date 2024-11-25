@@ -102,6 +102,10 @@ class Server:
                 })
     
         print("Statistics saved to network_statistics.csv")
+        with open('output.csv', mode='r') as file:
+            reader = csv.reader(file)
+            for row in reader:
+                print(row)
 
 # Client-Side Code
 class Client:
