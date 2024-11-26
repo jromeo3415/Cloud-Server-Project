@@ -1,6 +1,5 @@
 # tcp_file_server
 import socket
-import sys
 import os
 import threading
 from rsa import newkeys, decrypt
