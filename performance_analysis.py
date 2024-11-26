@@ -60,12 +60,12 @@ class Server:
 		print(f"File transfer time: {transfer_time} seconds")
 
 		# download speed (bytes per second) this is considered metric one alongside upload speed
-		download_speed = bytes_received / transfer_time
+		download_speed = (bytes_received / transfer_time) / (1024 * 1024)
 		self.stats['download_speed'].append(download_speed)
 		self.stats['file_transfer_time'].append(transfer_time)
 
 		# Calculate throughput (data transferred per second)
-		throughput = bytes_received / transfer_time
+		throughput = (bytes_received / transfer_time) / (1024 * 1024)
 		self.stats['throughput'].append(throughput)
 
 		# Add values to the DataFrame
@@ -76,7 +76,7 @@ class Server:
 		}, ignore_index=True)
 
 		# display results
-		print(f"Download Speed: {download_speed} B/s, Transfer Time: {transfer_time} s, Throughput: {throughput} B/s")
+		print(f"Download Speed: {download_speed} MB/s, Transfer Time: {transfer_time} s, Throughput: {throughput} MB/s")
 
 		# Close the connection
 		conn.close()
@@ -96,10 +96,10 @@ class Server:
 		with open('network_statistics.csv', 'w', newline='') as csvfile:
 			# Define the fieldnames (column names for the CSV file)
 			fieldnames = [
-				'Upload Speed (B/s)',
-				'Download Speed (B/s)',
+				'Upload Speed (MB/s)',
+				'Download Speed (MB/s)',
 				'File Transfer Time (s)',
-				'Throughput (B/s)'
+				'Throughput (MB/s)'
 			]
 
 			# DictWriter allows you to write the dictionaries into the csv file
@@ -111,10 +111,10 @@ class Server:
 			# Write each row of metrics to CSV
 			for index, row in self.df.iterrows():
 				writer.writerow({
-					'Upload Speed (B/s)': row['upload_speed'],
-					'Download Speed (B/s)': row['download_speed'],
+					'Upload Speed (MB/s)': row['upload_speed'],
+					'Download Speed (MB/s)': row['download_speed'],
 					'File Transfer Time (s)': row['file_transfer_time'],
-					'Throughput (B/s)': row['throughput']
+					'Throughput (MB/s)': row['throughput']
 				})
 
 		print("Statistics saved to network_statistics.csv")
