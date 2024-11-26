@@ -101,8 +101,8 @@ def upload_file(whole_command):
         try:  # error handling for file not on local machine
             with open(file_path, "rb") as local_file:
                 # start the performance eval tracker for the upload speed
-                client = performance_analysis.Client(server_host = '127.0.0.1", server_port=65432, file_path=file_path)
-                start_time = start.time()
+                client = performance_analysis.Client(server_host = '127.0.0.1', server_port=65432, file_path=file_path)
+                start_time = time.time()
                 bytes_sent = 0
                 
                 while chunk := (local_file.read(BUFFER)):  # loop to send packets until full file is sent
