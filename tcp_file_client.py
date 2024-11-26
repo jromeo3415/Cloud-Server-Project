@@ -138,8 +138,8 @@ def upload_file(whole_command):
                 s.send(b"<EOF>")
 
                 # Call performance metrics after upload
-                upload_speed = bytes_sent / transfer_time
-                throughput = bytes_sent / transfer_time
+                upload_speed = (bytes_sent / transfer_time) / (1024 * 1024)
+                throughput = (bytes_sent / transfer_time) / (1024 * 1024)
                 print(f"Upload complete.")
 
                 # Update and save statistics
@@ -179,8 +179,8 @@ def upload_file(whole_command):
                 s.send(b"<EOF>")
 
                 # Call performance metrics after upload
-                upload_speed = bytes_sent / transfer_time
-                throughput = bytes_sent / transfer_time
+                upload_speed = (bytes_sent / transfer_time) / (1024 * 1024)
+                throughput = (bytes_sent / transfer_time) / (1024 * 1024)
                 print(f"Upload complete.")
 
                 # Update and save statistics
@@ -227,8 +227,8 @@ def download_file(whole_command):
 
             # Calculate metrics
             transfer_time = time.time() - start_time
-            download_speed = bytes_received / transfer_time
-            throughput = bytes_received / transfer_time
+            download_speed = (bytes_received / transfer_time) / (1024 * 1024)
+            throughput = (bytes_received / transfer_time) / (1024 * 1024)
             print(f"Download complete. ")
 
             # Update and save statistics
