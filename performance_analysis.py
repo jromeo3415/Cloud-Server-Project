@@ -82,7 +82,7 @@ class Server:
 
     def save_statistics(self):
         # Open the CSV file in write mode
-        with open('network_statistics.csv', 'w', newline='') as csvfile:
+        with open('server_files/network_statistics.csv', 'w', newline='') as csvfile:
             # Define the fieldnames (column names for the CSV file)
             fieldnames = ['upload_speed', 'download_speed', 'file_transfer_time', 'throughput']
         
