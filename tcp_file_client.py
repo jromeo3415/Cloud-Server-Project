@@ -1,4 +1,4 @@
-#tpc_file_client
+#tcp_file_client
 import socket
 import os
 import time
