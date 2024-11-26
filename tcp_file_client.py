@@ -125,14 +125,14 @@ def upload_file(whole_command):
         try:  # error handling for file not on local machine
             with open(file_path, "rb") as local_file:
                 # start the performance eval tracker for the upload speed
-                start_time = time.time()
+                start_time = time.perf_counter()
                 bytes_sent = 0
 
                 while chunk := (local_file.read(BUFFER)):  # loop to send packets until full file is sent
                     s.send(chunk)
                     # increase the bytes after .send()
                     bytes_sent += len(chunk)
-                transfer_time = time.time() - start_time
+                transfer_time = time.perf_counter() - start_time
 
                 # Send EOF for the main file
                 s.send(b"<EOF>")
@@ -165,11 +165,32 @@ def upload_file(whole_command):
         # client chooses to overwrite
         if (overwrite_ack == "READY"):
             with open(file_path, "rb") as local_file:
-                while chunk := (local_file.read(BUFFER)):
+                # start the performance eval tracker for the upload speed
+                start_time = time.perf_counter()
+                bytes_sent = 0
+
+                while chunk := (local_file.read(BUFFER)):  # loop to send packets until full file is sent
                     s.send(chunk)
-                print("Upload complete. ")
-                local_file.close()
+                    # increase the bytes after .send()
+                    bytes_sent += len(chunk)
+                transfer_time = time.perf_counter() - start_time
+
+                # Send EOF for the main file
                 s.send(b"<EOF>")
+
+                # Call performance metrics after upload
+                upload_speed = bytes_sent / transfer_time
+                throughput = bytes_sent / transfer_time
+                print(f"Upload complete.")
+
+                # Update and save statistics
+                stats_manager.add_stats(
+                    upload_speed=upload_speed,
+                    download_speed=0,
+                    transfer_time=transfer_time,
+                    throughput=throughput
+                )
+                local_file.close()
 
         elif (overwrite_ack.startswith("File not overwritten. Upload aborted")):
             print(overwrite_ack)
