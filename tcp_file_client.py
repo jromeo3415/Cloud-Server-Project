@@ -10,7 +10,7 @@ import performance_analysis
 s = socket.socket()  # socket for client tcp file transfer
 BUFFER = 4096  # packet size
 
-# Class for track statistics
+# Class to track statistics
 class StatisticsServer:
     def __init__(self):
         self.server = performance_analysis.Server()
