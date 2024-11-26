@@ -11,4 +11,3 @@ pip install easygui
 pip install socket
 pip install sys
 pip install os
-pip install time
