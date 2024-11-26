@@ -94,6 +94,8 @@ def upload_file(whole_command):
         print("Connect to server first!")
         return
 
+    ack = s.recv(BUFFER).decode()
+
     # server is ready to write, send data
     if (ack == "READY"):
         try:  # error handling for file not on local machine
@@ -114,8 +116,6 @@ def upload_file(whole_command):
                 throughput = bytes_sent / transfer_time
                 print(f"Upload complete. Time taken: {transfer_time} s, Upload speed: {upload_speed} B/s")
                 print(f"Throughput: {throughput} B/s")
-                
-                print("Upload complete. ")
                 local_file.close()
                 s.send(b"<EOF>")
                 
