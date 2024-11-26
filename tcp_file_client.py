@@ -1,4 +1,4 @@
-#tcp_file_client
+# tcp_file_client
 import socket
 import os
 import time
@@ -8,7 +8,31 @@ from easygui import multpasswordbox
 import performance_analysis
 
 s = socket.socket()  # socket for client tcp file transfer
-BUFFER = 4096 # packet size
+BUFFER = 4096  # packet size
+
+# Class for track statistics
+class StatisticsServer:
+    def __init__(self):
+        self.server = performance_analysis.Server()
+
+    def add_stats(self, upload_speed=0.0, download_speed=0.0, transfer_time=0.0, throughput=0.0):
+        stats = {
+            'upload_speed': upload_speed,
+            'download_speed': download_speed,
+            'file_transfer_time': transfer_time,
+            'throughput': throughput
+        }
+
+        # Get next available index in dataframe
+        next_index = len(self.server.df)
+
+        # Add new stats row and save updated stats
+        self.server.df.loc[next_index] = stats
+        self.server.save_statistics()
+
+
+# Maintain a single Server instance
+stats_manager = StatisticsServer()
 
 
 def authenticate(s):
@@ -20,7 +44,7 @@ def authenticate(s):
         e = int(key_parts[1])
         server_key = PublicKey(n, e)
 
-        # Ask client for credentials 
+        # Ask client for credentials
         # Make GUI to use in any compatible IDE/terminal
         msg = "Enter your credentials!"
         title = "Login"
@@ -53,7 +77,7 @@ def connect(whole_command):
         print("Error: Incorrect number of attributes")
 
     try:  # handling unavailable host
-        port = int(port) #port is initially a string, converting to int
+        port = int(port)  # port is initially a string, converting to int
         s.connect((ip, port))
 
         # Check if authentication is successful to connect
@@ -73,9 +97,9 @@ def delete(whole_command):
         s.sendall(whole_command.encode())
         server_response = s.recv(BUFFER).decode()
         print(server_response)
-    except ValueError: # handling file not on local device
+    except ValueError:  # handling file not on local device
         print("Error: File does not exist")
-    except Exception as e: # handling when client tries to delete without connection to server
+    except Exception as e:  # handling when client tries to delete without connection to server
         print(f"Connect to server first!")
 
 
@@ -101,24 +125,32 @@ def upload_file(whole_command):
         try:  # error handling for file not on local machine
             with open(file_path, "rb") as local_file:
                 # start the performance eval tracker for the upload speed
-                client = performance_analysis.Client(server_host = '127.0.0.1', server_port=65432, file_path=file_path)
                 start_time = time.time()
                 bytes_sent = 0
-                
+
                 while chunk := (local_file.read(BUFFER)):  # loop to send packets until full file is sent
                     s.send(chunk)
                     # increase the bytes after .send()
                     bytes_sent += len(chunk)
                 transfer_time = time.time() - start_time
 
+                # Send EOF for the main file
+                s.send(b"<EOF>")
+
                 # Call performance metrics after upload
                 upload_speed = bytes_sent / transfer_time
                 throughput = bytes_sent / transfer_time
-                print(f"Upload complete. Time taken: {transfer_time} s, Upload speed: {upload_speed} B/s")
-                print(f"Throughput: {throughput} B/s")
+                print(f"Upload complete.")
+
+                # Update and save statistics
+                stats_manager.add_stats(
+                    upload_speed=upload_speed,
+                    download_speed=0,
+                    transfer_time=transfer_time,
+                    throughput=throughput
+                )
                 local_file.close()
-                s.send(b"<EOF>")
-                
+
         except FileNotFoundError:
             print(f"Error: file {file_path} not found on local device.")
         except Exception as e:
@@ -158,15 +190,33 @@ def download_file(whole_command):
 
         if ack == "READY":
             # start the performance eval tracker for download
-            server = performance_analysis.Server(host="127.0.0.1", port=65432)
+            start_time = time.time()
+            bytes_received = 0
+
             with open(file_name, "wb") as file:
                 while True:
-                    data = s.recv(BUFFER) # receive data in chunks
-                    if b"<EOF>" in data: # check for end of file
-                        file.write(data.replace(b"<EOF>", b""))
+                    data = s.recv(BUFFER)  # receive data in chunks
+                    if b"<EOF>" in data:  # check for end of file
+                        final_data = data.replace(b"<EOF>", b"")
+                        file.write(final_data)
+                        bytes_received += len(final_data)
                         break
-                    file.write(data) # write chunk to file
+                    file.write(data)
+                    bytes_received += len(data)
+
+            # Calculate metrics
+            transfer_time = time.time() - start_time
+            download_speed = bytes_received / transfer_time
+            throughput = bytes_received / transfer_time
             print(f"Download complete. ")
+
+            # Update and save statistics
+            stats_manager.add_stats(
+                upload_speed=0,
+                download_speed=download_speed,
+                transfer_time=transfer_time,
+                throughput=throughput
+            )
         else:
             print(ack)
     except Exception as e:
@@ -198,10 +248,11 @@ def handle_exit(whole_command):
 
 
 def start_client():
-    while True: # infinite loop for commands for server
+    while True:  # infinite loop for commands for server
         try:
-            whole_command = input("Enter command (connect <host ip> <port>, list, upload <filename>, download <filename>,\n"
-                              " delete <filename>, subfolder {create|delete} path/directory, EXIT): ")
+            whole_command = input(
+                "Enter command (connect <host ip> <port>, list, upload <filename>, download <filename>,\n"
+                " delete <filename>, subfolder {create|delete} path/directory, EXIT): ")
         except Exception as e:
             print(f"Error: {e}")
 
@@ -239,6 +290,6 @@ def start_client():
             print("Error: Command not recognized")
 
 
-#allows file to be ran from command line
+# allows file to be ran from command line
 if __name__ == "__main__":
     start_client()
